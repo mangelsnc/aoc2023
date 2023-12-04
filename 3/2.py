@@ -2,13 +2,14 @@
 
 import string
 
-file = open("example.txt", "r")
+file = open("input.txt", "r")
 
 symbol_chars = string.digits + "."
 
 line_count = 0
 digits = []
 lines = []
+gears = []
 
 for line in file:
     lines.append(line)
@@ -17,73 +18,48 @@ for line in file:
     for i in range(0, len(line)):
         if line[i].isdigit():
             current_digit += line[i]
-        elif not line[i].isdigit() and len(current_digit) > 0:
+        
+        if not line[i].isdigit() and len(current_digit) > 0:
             digit = current_digit
             starts_at = (i - len(digit))
-            digits.append([int(digit), line_count, starts_at, i-1])
+            digits.append({ 
+                "value": int(digit), 
+                "line_number": line_count, 
+                "start_pos": starts_at, 
+                "end_pos": i-1
+            })
             current_digit = ''
-        elif line[i] == '*':
-            digits.append(['*', line_count, i, i])
+        
+        if line[i] == '*':
+            gears.append({
+                "value": '*', 
+                "line_number": line_count, 
+                "position": i, 
+            })
             continue
 
     line_count += 1
 
-print(digits)
 total = 0
 
-for digit_object in digits:
-    digit = digit_object[0]
-    line = digit_object[1]
-    starts_at = digit_object[2]
-    ends_at = digit_object[3]
+for gear in gears:
+    print("Gear L%d:%d" % (gear['line_number'], gear['position']))
+    mult_digits = [] 
+    for digit in digits:
+        if digit['line_number'] == (gear['line_number'] - 1):
+             if (digit['start_pos'] in range(gear['position'] - 1, gear['position'] + 2)) or (digit['end_pos'] in range(gear['position'] - 1, gear['position'] + 2)):
+                mult_digits.append(digit['value'])
 
-    if digit != '*':
-        continue
-    
-    print('gear found')
+        if digit['line_number'] == (gear['line_number'] + 1):
+             if (digit['start_pos'] in range(gear['position'] - 1, gear['position'] + 2)) or (digit['end_pos'] in range(gear['position'] - 1, gear['position'] + 2)):
+                mult_digits.append(digit['value'])
 
-    for digit_object2 in digits:
-        digit2 = digit_object[0]
-        line2 = digit_object[1]
-        starts_at2 = digit_object[2]
-        ends_at2 = digit_object[3]
+        if digit['line_number'] == gear['line_number']:
+            if digit['start_pos'] == gear['position'] + 1 or digit['end_pos'] == gear['position'] - 1:
+                mult_digits.append(digit['value'])
 
-
-
-#    found = False
-#    if line > 0:
-#        for i in range((starts_at - 1), (ends_at + 1)):
-#            if i < 0 or i > len(lines[line - 1]):
-#                continue
-
-#            if lines[line - 1][i] not in symbol_chars:
-#                print("First rule: Add %d to total" % (digit))
-#                total += digit
-#                found = True
-#                break
-
-#    if line < (len(lines) - 1) and found == False:
-#        for i in range((starts_at - 1), (ends_at + 1)):
-#            if i < 0 or i > len(lines[line + 1]):
-#                continue
-
-#            if lines[line + 1][i] not in symbol_chars:
-#                print("Second rule: Add %d to total" % (digit))
-#                total += digit
-#                found = True
-#                break
-    
-#    if found == True:
-#        continue
-
-#    for i in range((starts_at - 1), (ends_at + 1)):
-#        if i < 0 or i > len(lines[line]):
-#            continue
-        
-#        if lines[line][i] not in symbol_chars:
-#            print("Third rule: Add %d to total" % (digit))
-#            total += digit
-#            break
+    if len(mult_digits) == 2:
+        total += mult_digits[0] * mult_digits[1]
 
 print(total)
 file.close()
